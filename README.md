@@ -1,4 +1,3 @@
-https://ethverify.streamlit.app/
 <p align="center">
   <h1>ethverify</h1>
   <p align="center">Ethereum adreslerinin güvenilirliğini anında doğrulayın ve dijital varlıklarınızı koruyun.</p>
