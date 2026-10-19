@@ -1,1 +1,1 @@
-https://cuzdan-doktoru.streamlit.app/
+https://ethverify.streamlit.app/
