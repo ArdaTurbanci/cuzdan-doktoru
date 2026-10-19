@@ -6,9 +6,9 @@ import os
 import time
 import numpy as np
 
-st.set_page_config(page_title="Cüzdan Doktoru", page_icon="🩺")
-st.title("🩺 Cüzdan Doktoru")
-st.write("Bir Ethereum adresinin dolandırıcılık riskini analiz eder.")
+st.set_page_config(page_title="EthVerify", page_icon="☑️")
+st.title("☑️ EthVerify")
+st.write("Ethereum adresinin dolandırıcılık riskini analiz eder.")
 
 API_KEY = os.environ.get("ETHERSCAN_API_KEY", "")
 model = joblib.load("cuzdan_doktoru_model.pkl")
@@ -85,21 +85,12 @@ if st.button("Analiz Et", type="primary"):
             olasilik = model.predict_proba(input_df)[0][1]
             skor = round(olasilik * 100)
             
-            # --- Hata Ayıklama (Debug) Bilgisi ---
-            st.sidebar.subheader("🛠️ Geliştirici Analiz Paneli")
-            st.sidebar.write(f"**Model Ham Olasılığı:** %{olasilik*100:.1f}")
-            
             sure_dakika = ozellikler.get("time_diff_between_first_and_last_(mins)", 1)
             if sure_dakika <= 0: sure_dakika = 1
             toplam_gonderilen = ozellikler.get("total_ether_sent", 0)
             dakika_basina_hacim = toplam_gonderilen / sure_dakika
             islem_sayisi = ozellikler.get("total_transactions_(including_tnx_to_create_contract", 1)
             avg_val_sent = ozellikler.get("avg_val_sent", 0)
-            
-            st.sidebar.write(f"**İşlem Sayısı:** {islem_sayisi}")
-            st.sidebar.write(f"**Ortalama Gönderilen ETH:** {avg_val_sent:.2f}")
-            st.sidebar.write(f"**Toplam Gönderilen ETH:** {toplam_gonderilen:.2f}")
-            st.sidebar.write(f"**Aktif Süre (Dakika):** {sure_dakika:.1f}")
 
             aktif_gun = sure_dakika / 1440
             gunluk_islem_orani = islem_sayisi / aktif_gun if aktif_gun > 0 else 0
@@ -107,15 +98,12 @@ if st.button("Analiz Et", type="primary"):
             # 1. Olağanüstü Büyük Vur-Kaç / Soyguncu Filtresi (Ronin vb. için)
             if avg_val_sent > 100 and islem_sayisi < 1000:
                 skor = max(skor, 95)
-                st.sidebar.success("🔥 Kural 1 Tetiklendi: Soyguncu Filtresi")
             # 2. Standart Vur-Kaç cüzdan koruması
             elif sure_dakika < 500000 and dakika_basina_hacim > 0.05 and toplam_gonderilen > 1000 and islem_sayisi < 200:
                 skor = max(skor, 85)
-                st.sidebar.success("🔥 Kural 2 Tetiklendi: Standart Vur-Kaç")
             # 3. Hem uzun ömürlü hem çok işlemli kurumsal koruma
             elif sure_dakika > 525600 and (islem_sayisi >= 1000 or (islem_sayisi >= 500 and gunluk_islem_orani > 1.0)):
                 skor = min(skor, 20)
-                st.sidebar.success("🔥 Kural 3 Tetiklendi: Borsa/Kurumsal Koruması")
             
             if skor >= 40:
                 st.error(f"🔴 RİSK SKORU: {skor}/100 — DOLANDIRICILIK ŞÜPHELİ")
